@@ -11,7 +11,7 @@ const RSS_FEEDS = [
   'http://feeds.bbci.co.uk/news/world/rss.xml', // BBC World
 ];
 
-const llmModel = 'gemini-3.1-flash-live'; 
+const llmModel = 'gemini-2.5-flash';
 
 import { categories } from './categories';
 
@@ -22,16 +22,16 @@ import { categories } from './categories';
  */
 async function evaluatePositivity(title: string, excerpt: string): Promise<{ isPositive: boolean, category: typeof categories[keyof typeof categories] }> {
   const apiKey = process.env.GEMINI_API_KEY;
-  
+
   if (!apiKey) {
     console.warn("No GEMINI_API_KEY found, using mock LLM evaluation.");
-    return { isPositive: Math.random() > 0.5, category: categories.GENERAL }; 
+    return { isPositive: Math.random() > 0.5, category: categories.GENERAL };
   }
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     // Use the latest, highly efficient flash model
-    const model = genAI.getGenerativeModel({ model: llmModel });    
+    const model = genAI.getGenerativeModel({ model: llmModel });
 
     const categoriesStr = Object.values(categories).join(', ');
 
@@ -57,7 +57,7 @@ If YES, categorize it into exactly one of the following: ${categoriesStr}. Reply
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text().trim().toUpperCase();
-    
+
     if (responseText === 'NO' || responseText.includes('NO')) {
       return { isPositive: false, category: categories.GENERAL };
     }
@@ -74,17 +74,17 @@ If YES, categorize it into exactly one of the following: ${categoriesStr}. Reply
 export async function fetchAndEvaluateNews() {
   // Clear any mock data so it doesn't mix with real fetched data
   await clearSeedData();
-  
+
   let newStoriesCount = 0;
 
   for (const feedUrl of RSS_FEEDS) {
     try {
       console.log(`Fetching RSS feed: ${feedUrl}`);
       const feed = await parser.parseURL(feedUrl);
-      
+
       // Only process the top 15 newest items per feed to avoid Vercel 60s timeouts
       const recentItems = feed.items.slice(0, 15);
-      
+
       for (const item of recentItems) {
         if (!item.title || !item.link) continue;
 
@@ -95,7 +95,7 @@ export async function fetchAndEvaluateNews() {
 
         const title = item.title;
         const excerpt = item.contentSnippet || item.content || "No description available.";
-        
+
         // Use Gemini to evaluate tone and category
         const { isPositive, category } = await evaluatePositivity(title, excerpt);
 
@@ -104,7 +104,7 @@ export async function fetchAndEvaluateNews() {
             id: crypto.createHash('md5').update(item.link).digest('hex'),
             title: title,
             // Clean up excerpt and truncate if necessary
-            excerpt: excerpt.replace(/<[^>]*>?/gm, '').substring(0, 200).trim() + '...', 
+            excerpt: excerpt.replace(/<[^>]*>?/gm, '').substring(0, 200).trim() + '...',
             category: category,
             source: feed.title || 'News Source',
             url: item.link,
