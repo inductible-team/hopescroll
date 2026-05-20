@@ -11,6 +11,8 @@ const RSS_FEEDS = [
   'http://feeds.bbci.co.uk/news/world/rss.xml', // BBC World
 ];
 
+const llmModel = 'gemini-3.1-flash-live'; 
+
 import { categories } from './categories';
 
 /**
@@ -29,7 +31,7 @@ async function evaluatePositivity(title: string, excerpt: string): Promise<{ isP
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     // Use the latest, highly efficient flash model
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });    
+    const model = genAI.getGenerativeModel({ model: llmModel });    
 
     const categoriesStr = Object.values(categories).join(', ');
 
