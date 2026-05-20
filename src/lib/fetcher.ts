@@ -7,7 +7,7 @@ const parser = new Parser();
 
 // Base RSS feeds for neutral baseline news
 const RSS_FEEDS = [
-  'https://www.reutersagency.com/feed/?best-topics=world-news&post_type=best', // Reuters Agency Top News
+  'https://feeds.npr.org/1004/rss.xml', // NPR World News
   'http://feeds.bbci.co.uk/news/world/rss.xml', // BBC World
 ];
 
@@ -28,8 +28,8 @@ async function evaluatePositivity(title: string, excerpt: string): Promise<{ isP
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    // Use the fast and efficient flash model for high-volume text tasks
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });    
+    // Use the latest, highly efficient flash model
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });    
 
     const categoriesStr = Object.values(categories).join(', ');
 
