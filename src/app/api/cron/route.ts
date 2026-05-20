@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchAndEvaluateNews } from '@/lib/fetcher';
 
+export const maxDuration = 60; // Allow maximum execution time on Vercel Hobby tier
+
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   

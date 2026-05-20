@@ -80,8 +80,16 @@ export async function fetchAndEvaluateNews() {
       console.log(`Fetching RSS feed: ${feedUrl}`);
       const feed = await parser.parseURL(feedUrl);
       
-      for (const item of feed.items) {
+      // Only process the top 15 newest items per feed to avoid Vercel 60s timeouts
+      const recentItems = feed.items.slice(0, 15);
+      
+      for (const item of recentItems) {
         if (!item.title || !item.link) continue;
+
+        if (newStoriesCount >= 15) {
+          console.log("Reached 15 new positive stories! Stopping early to save execution time.");
+          return;
+        }
 
         const title = item.title;
         const excerpt = item.contentSnippet || item.content || "No description available.";
