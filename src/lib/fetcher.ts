@@ -1,5 +1,5 @@
 import Parser from 'rss-parser';
-import { insertStory, DBStory } from './db';
+import { insertStory, clearSeedData, DBStory } from './db';
 import crypto from 'crypto';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -70,6 +70,9 @@ If YES, categorize it into exactly one of the following: ${categoriesStr}. Reply
 }
 
 export async function fetchAndEvaluateNews() {
+  // Clear any mock data so it doesn't mix with real fetched data
+  await clearSeedData();
+  
   let newStoriesCount = 0;
 
   for (const feedUrl of RSS_FEEDS) {
@@ -98,7 +101,7 @@ export async function fetchAndEvaluateNews() {
             date: item.isoDate || new Date().toISOString()
           };
 
-          insertStory(story);
+          await insertStory(story);
           newStoriesCount++;
         }
       }
