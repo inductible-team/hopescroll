@@ -23,13 +23,11 @@ import { categories } from './categories';
  */
 async function evaluatePositivity(title: string, excerpt: string): Promise<{ isPositive: boolean, category: typeof categories[keyof typeof categories] }> {
 
-  if(disarmAI) return { isPositive: false, category: categories.GENERAL };
-
   const apiKey = process.env.GEMINI_API_KEY;
 
-  if (!apiKey) {
-    console.warn("No GEMINI_API_KEY found, using mock LLM evaluation.");
-    return { isPositive: Math.random() > 0.5, category: categories.GENERAL };
+  if (!apiKey || disarmAI) {
+    console.warn("No GEMINI_API_KEY found or AI disarmed :: using mock LLM evaluation.");
+    return { isPositive: false, category: categories.GENERAL };
   }
 
   try {
@@ -103,21 +101,22 @@ export async function fetchAndEvaluateNews() {
         // Use Gemini to evaluate tone and category
         const { isPositive, category } = await evaluatePositivity(title, excerpt);
 
-          if (isPositive || disarmAI) {
-            const story: Omit<DBStory, 'is_positive'> = {
-              id: crypto.createHash('md5').update(item.link).digest('hex'),
-              title: title,
-              // Clean up excerpt and truncate if necessary
-              excerpt: excerpt.replace(/<[^>]*>?/gm, '').substring(0, 200).trim() + '...',
-              category: category,
-              source: feed.title || 'News Source',
-              url: item.link,
-              date: item.isoDate || new Date().toISOString()
-            };
+        if (isPositive || disarmAI) {
+          const story: Omit<DBStory, 'is_positive'> = {
+            id: crypto.createHash('md5').update(item.link).digest('hex'),
+            title: title,
+            // Clean up excerpt and truncate if necessary
+            excerpt: excerpt.replace(/<[^>]*>?/gm, '').substring(0, 200).trim() + '...',
+            category: category,
+            source: feed.title || 'News Source',
+            url: item.link,
+            is_seed: disarmAI, // if AI is disarmed, allow subsequent runs to replace with real data by marking these as seed
+            date: item.isoDate || new Date().toISOString()
+          };
 
-            await insertStory(story);
-            newStoriesCount++;
-          }      
+          await insertStory(story);
+          newStoriesCount++;
+        }      
       }
     } catch (error) {
       console.error(`Error fetching RSS feed ${feedUrl}:`, error);
