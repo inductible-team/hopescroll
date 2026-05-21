@@ -21,13 +21,13 @@ import { categories } from './categories';
  * empowering, and stimulates mental growth, without being patronising.
  * It also categorizes the story.
  */
-async function evaluatePositivity(title: string, excerpt: string): Promise<{ isPositive: boolean, category: typeof categories[keyof typeof categories] }> {
+async function evaluatePositivity(title: string, excerpt: string): Promise<{ clearedEditorialCheck: boolean, category: typeof categories[keyof typeof categories] }> {
 
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey || disarmAI) {
     console.warn("No GEMINI_API_KEY found or AI disarmed :: using mock LLM evaluation.");
-    return { isPositive: false, category: categories.GENERAL };
+    return { clearedEditorialCheck: true, category: categories.GENERAL };
   }
 
   try {
@@ -61,15 +61,15 @@ If YES, categorize it into exactly one of the following: ${categoriesStr}. Reply
     const responseText = result.response.text().trim().toUpperCase();
 
     if (responseText === 'NO' || responseText.includes('NO')) {
-      return { isPositive: false, category: categories.GENERAL };
+      return { clearedEditorialCheck: false, category: categories.GENERAL };
     }
 
-    return { isPositive: true, category: categories[responseText as keyof typeof categories] || categories.GENERAL };
+    return { clearedEditorialCheck: true, category: categories[responseText as keyof typeof categories] || categories.GENERAL };
 
   } catch (error) {
     console.error("Error evaluating positivity with Gemini:", error);
     // If the API fails (rate limits, etc.), default to false so we don't accidentally let bad news in
-    return { isPositive: false, category: categories.GENERAL };
+    return { clearedEditorialCheck: false, category: categories.GENERAL };
   }
 }
 
@@ -99,9 +99,9 @@ export async function fetchAndEvaluateNews() {
         const excerpt = item.contentSnippet || item.content || "No description available.";
 
         // Use Gemini to evaluate tone and category
-        const { isPositive, category } = await evaluatePositivity(title, excerpt);
+        const { clearedEditorialCheck, category } = await evaluatePositivity(title, excerpt);
 
-        if (isPositive || disarmAI) {
+        if (clearedEditorialCheck || disarmAI) {
           const story: Omit<DBStory, 'is_positive'> = {
             id: crypto.createHash('md5').update(item.link).digest('hex'),
             title: title,
