@@ -281,12 +281,21 @@ export async function incrementFeedFetches(url: string, count: number) {
 }
 
 export async function seedFeeds(feedUrls: string[]) {
+  if (feedUrls.length === 0) return 0;
+
   const collection = await getFeedsCollection();
-  const existingCount = await collection.countDocuments();
-  if (existingCount > 0) return; // Only seed if empty
+  
+  // Find which of these URLs already exist in the database
+  const existingFeeds = await collection.find({ url: { $in: feedUrls } }).toArray();
+  const existingUrls = new Set(existingFeeds.map(f => f.url));
+  
+  // Filter out the existing ones and remove duplicates from the input list itself
+  const uniqueNewUrls = Array.from(new Set(feedUrls)).filter(url => !existingUrls.has(url));
+
+  if (uniqueNewUrls.length === 0) return 0;
 
   const now = new Date().toISOString();
-  const feeds: DBFeed[] = feedUrls.map(url => ({
+  const feeds: DBFeed[] = uniqueNewUrls.map(url => ({
     url,
     status: 'active',
     createdAt: now,
@@ -295,9 +304,8 @@ export async function seedFeeds(feedUrls: string[]) {
     lastPositiveDate: now // Give them a grace period from creation
   }));
 
-  if (feeds.length > 0) {
-    await collection.insertMany(feeds);
-  }
+  const result = await collection.insertMany(feeds);
+  return result.insertedCount;
 }
 
 export async function curateFeeds() {

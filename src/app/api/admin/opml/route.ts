@@ -50,10 +50,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No valid rss/xmlUrl feeds found in the OPML file.' }, { status: 400 });
     }
 
-    // Seed the discovered feeds into the DB
-    await seedFeeds(urls);
+    // Seed the discovered feeds into the DB (automatically deduplicates)
+    const insertedCount = await seedFeeds(urls) || 0;
 
-    return NextResponse.json({ success: true, message: `Successfully parsed and queued ${urls.length} feeds.` });
+    return NextResponse.json({ success: true, message: `Successfully parsed OPML. Added ${insertedCount} new feeds (skipped duplicates).` });
 
   } catch (error: any) {
     console.error('Error processing OPML:', error);
