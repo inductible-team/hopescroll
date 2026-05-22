@@ -2,7 +2,7 @@ import { getUnevaluatedStory, updateStoryVerdict, recordFeedSuccess } from './db
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { categories } from './categories';
 
-const llmModel = 'gemini-3.5-flash';
+const llmModel = 'gemini-3.1-flash-lite-preview'; //'gemini-3.5-flash';
 
 /**
  * Uses Google Gemini to evaluate if a story is uplifting, 
