@@ -109,8 +109,14 @@ export async function insertPotentialStories(stories: Omit<DBStory, 'clearedEdit
 
 export async function getUnevaluatedStory(): Promise<DBStory | null> {
   const collection = await getCollection();
-  const story = await collection.findOne({ clearedEditorialCheck: false, verdict: -1 });
-  return story as DBStory | null;
+  
+  // Use the aggregation framework with $sample to pick a random document
+  const result = await collection.aggregate([
+    { $match: { clearedEditorialCheck: false, verdict: -1 } },
+    { $sample: { size: 1 } }
+  ]).toArray();
+  
+  return result.length > 0 ? (result[0] as unknown as DBStory) : null;
 }
 
 export async function updateStoryVerdict(id: string, verdict: number, category: DBStory['category']) {
