@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchAndEvaluateNews } from '@/lib/fetcher';
+import { evaluateSingleStory } from '@/lib/ai-evaluator';
 
 export const maxDuration = 60; // Allow maximum execution time on Vercel Hobby tier
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   
-  // Secure the endpoint so only Cloud Scheduler can hit it
+  // Secure the endpoint so only external cron can hit it
   if (
     !process.env.CRON_SECRET ||
     authHeader !== `Bearer ${process.env.CRON_SECRET}`
@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    await fetchAndEvaluateNews();
-    return NextResponse.json({ success: true, message: 'News fetched successfully' });
+    await evaluateSingleStory();
+    return NextResponse.json({ success: true, message: 'AI evaluated one story successfully' });
   } catch (error: any) {
     console.error('Cron job error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

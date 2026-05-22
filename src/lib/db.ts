@@ -52,7 +52,8 @@ export interface DBStory {
   source: string;
   url: string;
   date: string;
-  is_positive: number;
+  clearedEditorialCheck: boolean;
+  verdict: number; // 1 for positive, 0 for negative, -1 for undecided
   is_seed?: boolean;
 }
 
@@ -63,7 +64,7 @@ export async function getDailyStories(): Promise<DBStory[]> {
   }
   const collection = await getCollection();
   const stories = await collection
-    .find({ is_positive: 1 })
+    .find({ clearedEditorialCheck: true, verdict: 1 })
     .sort({ date: -1 })
     .limit(15)
     .toArray();
@@ -78,18 +79,60 @@ export async function getDailyStories(): Promise<DBStory[]> {
     source: story.source,
     url: story.url,
     date: story.date,
-    is_positive: story.is_positive,
+    clearedEditorialCheck: story.clearedEditorialCheck,
+    verdict: story.verdict,
     is_seed: story.is_seed
   }));
 }
 
-export async function insertStory(story: Omit<DBStory, 'is_positive'>) {
+export async function insertPotentialStories(stories: Omit<DBStory, 'clearedEditorialCheck' | 'verdict'>[]) {
+  const collection = await getCollection();
+  
+  if (stories.length === 0) return;
+
+  const operations = stories.map(story => ({
+    updateOne: {
+      filter: { id: story.id },
+      update: { 
+        $setOnInsert: { 
+          ...story, 
+          clearedEditorialCheck: false, 
+          verdict: -1 
+        } 
+      },
+      upsert: true
+    }
+  }));
+
+  await collection.bulkWrite(operations);
+}
+
+export async function getUnevaluatedStory(): Promise<DBStory | null> {
+  const collection = await getCollection();
+  const story = await collection.findOne({ clearedEditorialCheck: false, verdict: -1 });
+  return story as DBStory | null;
+}
+
+export async function updateStoryVerdict(id: string, verdict: number, category: DBStory['category']) {
   const collection = await getCollection();
   await collection.updateOne(
-    { id: story.id }, // Match by ID
-    { $set: { ...story, is_positive: 1 } },
-    { upsert: true }
+    { id: id },
+    { $set: { clearedEditorialCheck: true, verdict: verdict, category: category } }
   );
+}
+
+export async function purgeOldAndNegativeStories() {
+  const collection = await getCollection();
+  
+  // 48 hours ago
+  const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+
+  await collection.deleteMany({
+    $or: [
+      { date: { $lt: fortyEightHoursAgo } },
+      { clearedEditorialCheck: true, verdict: 0 }
+    ]
+  });
 }
 
 export async function clearSeedData() {
@@ -168,10 +211,14 @@ export async function seedMockData() {
       date: '2026-05-19T20:00:00Z',
       is_seed: true
     }
-  ] as Omit<DBStory, 'is_positive'>[];
+  ] as Omit<DBStory, 'clearedEditorialCheck' | 'verdict'>[];
 
-  for (const story of mockStories) {
-    await insertStory(story);
-  }
+  await insertPotentialStories(mockStories);
+  
+  // Set the seeds to verified so they show up
+  await collection.updateMany(
+    { is_seed: true },
+    { $set: { clearedEditorialCheck: true, verdict: 1 } }
+  );
   console.log("Seeding complete.");
 }
