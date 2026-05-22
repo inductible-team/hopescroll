@@ -9,6 +9,14 @@ const parser = new Parser();
 const RSS_FEEDS = [
   'https://feeds.npr.org/1004/rss.xml', // NPR World News
   'http://feeds.bbci.co.uk/news/world/rss.xml', // BBC World
+  'https://ourworldindata.org/atom.xml', // Our World in Data (data-driven progress stories)
+  'https://feeds.npr.org/1007/rss.xml', // NPR Science
+  'http://rss.sciam.com/basic-science', // Scientific American
+  'https://rss.nytimes.com/services/xml/rss/nyt/Science.xml', // The New York Times Science
+  'https://www.csmonitor.com/feeds/all', // Christian Science Monitor (more solutions-oriented)
+  'https://reasonstobecheerful.world/feed/', // Reasons to be Cheerful (positive news site)
+  'https://www.yesmagazine.org/feed', // YES! Magazine (solutions journalism)
+  'https://www.optimistdaily.com/feed/', // The Optimist Daily (positive news)
 ];
 
 export async function fetchRssFeeds() {
