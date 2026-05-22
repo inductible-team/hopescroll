@@ -15,7 +15,6 @@ const RSS_FEEDS = [
   'https://rss.nytimes.com/services/xml/rss/nyt/Science.xml', // The New York Times Science
   'https://www.csmonitor.com/feeds/all', // Christian Science Monitor (more solutions-oriented)
   'https://reasonstobecheerful.world/feed/', // Reasons to be Cheerful (positive news site)
-  'https://www.yesmagazine.org/feed', // YES! Magazine (solutions journalism)
   'https://www.optimistdaily.com/feed/', // The Optimist Daily (positive news)
 ];
 
