@@ -16,7 +16,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No OPML file provided' }, { status: 400 });
     }
 
-    const xmlContent = await file.text();
+    let xmlContent = await file.text();
+    // Fix unescaped ampersands that commonly break XML parsing
+    xmlContent = xmlContent.replace(/&(?!(?:[a-zA-Z]+|#[0-9]+|#x[0-9a-fA-F]+);)/g, '&amp;');
+    
     const parser = new xml2js.Parser();
     const result = await parser.parseStringPromise(xmlContent);
 
