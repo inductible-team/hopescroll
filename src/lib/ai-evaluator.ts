@@ -2,7 +2,7 @@ import { getUnevaluatedStory, updateStoryVerdict } from './db';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { categories } from './categories';
 
-const llmModel = 'gemini-3.5-flash'; 
+const llmModel = 'gemini-3.5-flash';
 
 /**
  * Uses Google Gemini to evaluate if a story is uplifting, 
@@ -11,53 +11,78 @@ const llmModel = 'gemini-3.5-flash';
  */
 async function evaluatePositivity(title: string, excerpt: string): Promise<{ isPositive: boolean, category: typeof categories[keyof typeof categories] }> {
   const apiKey = process.env.GEMINI_API_KEY;
-  
+
   if (!apiKey) {
     console.warn("No GEMINI_API_KEY found, using mock LLM evaluation.");
-    return { isPositive: Math.random() > 0.5, category: categories.GENERAL }; 
+    return { isPositive: Math.random() > 0.5, category: categories.GENERAL };
   }
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: llmModel });    
+    const model = genAI.getGenerativeModel({ model: llmModel });
 
     const categoriesStr = Object.values(categories).join(', ');
 
     const prompt = `
-You are a highly discerning editor for "Hopescroll", a news aggregator dedicated to the opposite of doomscrolling. 
-Your job is to read a news headline and excerpt, and determine if it belongs on the site.
+        You are the editorial classifier for “Hopescroll”, a news aggregator focused on constructive, hope-oriented journalism — the opposite of doomscrolling.
 
-Criteria for inclusion:
-* constructive
-* human-progress oriented
-* agency-producing
-* solutions-aware
-* evidence-backed
- 
-Examples of the type of news we want:
-* Human cooperation
-* Scientific progress
-* Institutional competence
-* Environmental recovery
-* Prosocial behavior
-* Positive individual and social agency
+        Your task is to determine whether a news story belongs on Hopescroll.
 
-A heuristic for guidance: "Does the article increase the reader's sense that humans can solve problems together?"
- 
-- It MUST NOT be standard neutral/depressing news, political bickering, disaster reporting, or trivial celebrity gossip.
+        A story SHOULD be included if it substantially reflects one or more of the following:
 
-News Item:
-Title: "${title}"
-Excerpt: "${excerpt}"
+        * Constructive journalism focused on credible solutions
+        * Human cooperation or collective problem-solving
+        * Scientific, medical, or technological progress
+        * Institutional competence or effective governance
+        * Environmental recovery or sustainability progress
+        * Prosocial behavior, altruism, or community resilience
+        * Human agency, empowerment, learning, or growth
+        * Evidence that serious problems are being meaningfully addressed
 
-Does this story meet all criteria for inclusion on Hopescroll? 
-If NO, reply with exactly one word: NO
-If YES, categorize it into exactly one of the following: ${categoriesStr}. Reply with ONLY the category word.
-`;
+        Core editorial heuristic:
+
+        “Does this story increase the reader's sense that humans can successfully solve problems, improve society, or create a better future?”
+
+        A story SHOULD NOT be included if it is primarily:
+
+        * Standard negative or emotionally draining news
+        * Political outrage, partisan conflict, or culture-war content
+        * Disaster, war, crime, or tragedy reporting without meaningful constructive resolution
+        * Fear-driven, cynical, or hopeless in tone
+        * Celebrity gossip, clickbait, or trivial entertainment
+        * Purely neutral informational reporting without constructive value
+        * Corporate PR or marketing disguised as news
+        * 'Feel-good' content lacking broader human significance
+
+        Important distinctions:
+
+        * The story must contain meaningful progress, agency, cooperation, or solutions — not merely positivity.
+        * Incremental but real progress is acceptable.
+        * Stories about difficult problems ARE acceptable if the emphasis is on credible solutions, recovery, innovation, or effective action.
+        * Scientific or social breakthroughs should generally be included if they are substantive and credible.
+
+        News Item:
+        Title: “${title}”
+
+        Excerpt:
+        “${excerpt}”
+
+        Possible categories:
+        ${categoriesStr}
+
+        Instructions:
+
+        * If the story does NOT belong on Hopescroll, reply with exactly: NO
+        * If the story DOES belong, reply with EXACTLY ONE category from the category list.
+        * Do not explain your reasoning.
+        * Do not output punctuation.
+        * Do not output additional words.
+        * Output must contain only a single token/string.
+    `;
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text().trim().toUpperCase();
-    
+
     if (responseText === 'NO' || responseText.includes('NO')) {
       return { isPositive: false, category: categories.GENERAL };
     }
@@ -73,21 +98,21 @@ If YES, categorize it into exactly one of the following: ${categoriesStr}. Reply
 
 export async function evaluateSingleStory() {
   const story = await getUnevaluatedStory();
-  
+
   if (!story) {
     console.log("No unevaluated stories found in the DB. Nothing to do.");
     return;
   }
 
   console.log(`Evaluating story: "${story.title}"`);
-  
+
   // Use Gemini to evaluate tone and category
   const { isPositive, category } = await evaluatePositivity(story.title, story.excerpt);
 
   const verdict = isPositive ? 1 : 0;
-  
+
   // Update the database with the verdict and category
   await updateStoryVerdict(story.id, verdict, category);
-  
+
   console.log(`Story evaluation complete. Verdict: ${verdict} | Category: ${category}`);
 }
