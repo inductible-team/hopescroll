@@ -17,7 +17,7 @@ export function Header({ activeCategory, onSelectCategory }: HeaderProps) {
       <div className="container header-content">
         <div className="logo">
           <Sun className="text-accent" size={28} />
-          Hopescroll<span>.</span>
+          Hopescroll
         </div>
         <nav className="category-filter">
           {CATEGORIES.map(cat => (
