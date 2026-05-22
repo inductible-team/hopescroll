@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/rss",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/curate-feeds",
+      "schedule": "0 0 * * *"
     }
   ]
 }

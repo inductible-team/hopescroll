@@ -1,5 +1,5 @@
 import Parser from 'rss-parser';
-import { insertPotentialStories, clearSeedData, purgeOldAndNegativeStories, DBStory } from './db';
+import { insertPotentialStories, clearSeedData, purgeOldAndNegativeStories, DBStory, getActiveFeeds, seedFeeds, incrementFeedFetches } from './db';
 import crypto from 'crypto';
 import { categories } from './categories';
 
@@ -22,16 +22,21 @@ export async function fetchRssFeeds() {
   // Clear any mock data so it doesn't mix with real fetched data
   await clearSeedData();
   
+  // Ensure we have our baseline feeds seeded
+  await seedFeeds(RSS_FEEDS);
+
+  const activeFeeds = await getActiveFeeds();
   let newStoriesCount = 0;
 
-  for (const feedUrl of RSS_FEEDS) {
+  for (const feed of activeFeeds) {
+    const feedUrl = feed.url;
     try {
       console.log(`Fetching RSS feed: ${feedUrl}`);
-      const feed = await parser.parseURL(feedUrl);
+      const parsedFeed = await parser.parseURL(feedUrl);
       
       const potentialStories: Omit<DBStory, 'clearedEditorialCheck' | 'verdict'>[] = [];
 
-      for (const item of feed.items) {
+      for (const item of parsedFeed.items) {
         if (!item.title || !item.link) continue;
 
         const excerpt = item.contentSnippet || item.content || "No description available.";
@@ -41,13 +46,17 @@ export async function fetchRssFeeds() {
           title: item.title,
           excerpt: excerpt.replace(/<[^>]*>?/gm, '').substring(0, 200).trim() + '...', 
           category: categories.GENERAL, // temporary fallback
-          source: feed.title || 'News Source',
+          source: parsedFeed.title || 'News Source',
           url: item.link,
-          date: item.isoDate || new Date().toISOString()
+          date: item.isoDate || new Date().toISOString(),
+          feedUrl: feedUrl
         });
       }
 
       await insertPotentialStories(potentialStories);
+      if (potentialStories.length > 0) {
+        await incrementFeedFetches(feedUrl, potentialStories.length);
+      }
       newStoriesCount += potentialStories.length;
       
     } catch (error) {

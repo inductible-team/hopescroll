@@ -44,6 +44,24 @@ async function getCollection() {
   return db.collection<DBStory>('stories');
 }
 
+async function getFeedsCollection() {
+  if (!clientPromise) {
+    throw new Error('MONGODB_URI is missing in .env.local');
+  }
+  const dbClient = await clientPromise;
+  const db = dbClient.db('hopescroll');
+  return db.collection<DBFeed>('rss_feeds');
+}
+
+export interface DBFeed {
+  url: string;
+  status: 'active' | 'disabled';
+  createdAt: string;
+  totalStoriesFetched: number;
+  positiveStoriesFound: number;
+  lastPositiveDate: string | null;
+}
+
 export interface DBStory {
   id: string; // The URL hash or original ID
   title: string;
@@ -55,6 +73,7 @@ export interface DBStory {
   clearedEditorialCheck: boolean;
   verdict: number; // 1 for positive, 0 for negative, -1 for undecided
   is_seed?: boolean;
+  feedUrl?: string;
 }
 
 export async function getDailyStories(): Promise<DBStory[]> {
@@ -228,3 +247,72 @@ export async function seedMockData() {
   );
   console.log("Seeding complete.");
 }
+
+export async function getActiveFeeds(): Promise<DBFeed[]> {
+  const collection = await getFeedsCollection();
+  return collection.find({ status: 'active' }).toArray();
+}
+
+export async function disableFeed(url: string) {
+  const collection = await getFeedsCollection();
+  await collection.updateOne(
+    { url },
+    { $set: { status: 'disabled' } }
+  );
+}
+
+export async function recordFeedSuccess(url: string) {
+  const collection = await getFeedsCollection();
+  await collection.updateOne(
+    { url },
+    { 
+      $inc: { positiveStoriesFound: 1 },
+      $set: { lastPositiveDate: new Date().toISOString() }
+    }
+  );
+}
+
+export async function incrementFeedFetches(url: string, count: number) {
+  const collection = await getFeedsCollection();
+  await collection.updateOne(
+    { url },
+    { $inc: { totalStoriesFetched: count } }
+  );
+}
+
+export async function seedFeeds(feedUrls: string[]) {
+  const collection = await getFeedsCollection();
+  const existingCount = await collection.countDocuments();
+  if (existingCount > 0) return; // Only seed if empty
+
+  const now = new Date().toISOString();
+  const feeds: DBFeed[] = feedUrls.map(url => ({
+    url,
+    status: 'active',
+    createdAt: now,
+    totalStoriesFetched: 0,
+    positiveStoriesFound: 0,
+    lastPositiveDate: now // Give them a grace period from creation
+  }));
+
+  if (feeds.length > 0) {
+    await collection.insertMany(feeds);
+  }
+}
+
+export async function curateFeeds() {
+  const collection = await getFeedsCollection();
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const result = await collection.updateMany(
+    {
+      status: 'active',
+      lastPositiveDate: { $lt: sevenDaysAgo }
+    },
+    { $set: { status: 'disabled' } }
+  );
+
+  console.log(`Curation complete: Disabled ${result.modifiedCount} poorly performing feeds.`);
+  return result.modifiedCount;
+}
+

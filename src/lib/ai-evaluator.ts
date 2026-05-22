@@ -1,4 +1,4 @@
-import { getUnevaluatedStory, updateStoryVerdict } from './db';
+import { getUnevaluatedStory, updateStoryVerdict, recordFeedSuccess } from './db';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { categories } from './categories';
 
@@ -74,6 +74,7 @@ async function evaluatePositivity(title: string, excerpt: string): Promise<{ isP
 
         * If the story does NOT belong on Hopescroll, reply with exactly: NO
         * If the story DOES belong, reply with EXACTLY ONE category from the category list.
+        * When uncertain, prefer NO
         * Do not explain your reasoning.
         * Do not output punctuation.
         * Do not output additional words.
@@ -113,6 +114,10 @@ export async function evaluateSingleStory() {
 
   // Update the database with the verdict and category
   await updateStoryVerdict(story.id, verdict, category);
+
+  if (isPositive && story.feedUrl) {
+    await recordFeedSuccess(story.feedUrl);
+  }
 
   console.log(`Story evaluation complete. Verdict: ${verdict} | Category: ${category}`);
 }
