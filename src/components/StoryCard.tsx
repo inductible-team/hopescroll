@@ -18,7 +18,8 @@ export function StoryCard({ story, index }: { story: Story; index: number }) {
   const formattedDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(dateObj);
 
   const trimmedUrl = story.url.trim();
-  const safeUrl = trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://') ? trimmedUrl : '#';
+  const lowerUrl = trimmedUrl.toLowerCase();
+  const safeUrl = lowerUrl.startsWith('http://') || lowerUrl.startsWith('https://') ? trimmedUrl : '#';
 
   return (
     <a 
