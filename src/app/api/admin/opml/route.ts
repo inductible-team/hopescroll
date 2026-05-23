@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import xml2js from 'xml2js';
 import { seedFeeds } from '@/lib/db';
+import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,7 +9,22 @@ export async function POST(request: NextRequest) {
     const secret = formData.get('secret');
     const file = formData.get('file') as File;
 
-    if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET) {
+    if (!process.env.ADMIN_SECRET) {
+      return NextResponse.json({ error: 'Unauthorized: Invalid secret key' }, { status: 401 });
+    }
+
+    const expectedBuffer = Buffer.from(process.env.ADMIN_SECRET);
+    const providedBuffer = Buffer.from(typeof secret === 'string' ? secret : '');
+
+    let isMatch = false;
+    if (expectedBuffer.length === providedBuffer.length) {
+      isMatch = crypto.timingSafeEqual(expectedBuffer, providedBuffer);
+    } else {
+      crypto.timingSafeEqual(expectedBuffer, expectedBuffer);
+      isMatch = false;
+    }
+
+    if (!isMatch) {
       return NextResponse.json({ error: 'Unauthorized: Invalid secret key' }, { status: 401 });
     }
 
