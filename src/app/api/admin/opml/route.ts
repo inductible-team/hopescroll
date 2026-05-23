@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import xml2js from 'xml2js';
 import { seedFeeds } from '@/lib/db';
 
+interface OpmlNode {
+  $?: {
+    xmlUrl?: string;
+    [key: string]: string | undefined;
+  };
+  outline?: OpmlNode | OpmlNode[];
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -26,7 +34,7 @@ export async function POST(request: NextRequest) {
     const urls: string[] = [];
 
     // Helper to recursively find outlines
-    const extractUrls = (node: any) => {
+    const extractUrls = (node: OpmlNode | OpmlNode[] | null | undefined) => {
       if (!node) return;
       
       if (Array.isArray(node)) {
