@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchRssFeeds } from '@/lib/rss-fetcher';
 
@@ -6,11 +7,19 @@ export const maxDuration = 60; // Allow maximum execution time on Vercel Hobby t
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   
-  // Secure the endpoint so only Cloud Scheduler can hit it
-  if (
-    !process.env.CRON_SECRET ||
-    authHeader !== `Bearer ${process.env.CRON_SECRET}`
-  ) {
+  // Secure the endpoint against timing attacks
+  const expectedAuthHeader = `Bearer ${process.env.CRON_SECRET}`;
+  const expectedAuthHeaderBuffer = Buffer.from(expectedAuthHeader);
+  const authHeaderBuffer = Buffer.from(authHeader || '');
+
+  const isValidAuth =
+    process.env.CRON_SECRET &&
+    authHeader &&
+    authHeaderBuffer.byteLength === expectedAuthHeaderBuffer.byteLength &&
+    crypto.timingSafeEqual(authHeaderBuffer, expectedAuthHeaderBuffer);
+
+  // Secure the endpoint so only external cron can hit it
+  if (!isValidAuth) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
