@@ -85,7 +85,7 @@ export async function getDailyStories(page: number = 1, limit: number = 15, cate
   const skip = (page - 1) * limit;
   
   const query: any = { clearedEditorialCheck: true, verdict: 1 };
-  if (category && category !== 'all') {
+  if (typeof category === 'string' && category !== 'all') {
     query.category = category;
   }
 
