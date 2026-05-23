@@ -23,7 +23,10 @@ export function StoryCard({ story, index }: { story: Story; index: number }) {
       target="_blank" 
       rel="noopener noreferrer" 
       className="story-card glass animate-fade-in"
-      style={{ animationDelay: `${index * 0.05}s` }}
+      style={{ 
+        animationDelay: `${index * 0.05}s`,
+        '--card-border': `var(--cat-${story.category})`
+      } as React.CSSProperties}
     >
       <div className="story-meta">
         <span className={`category-tag tag-${story.category}`}>
