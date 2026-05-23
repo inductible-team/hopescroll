@@ -25,6 +25,8 @@
     "@types/xml2js": "^0.4.14",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "mongodb-memory-server": "^11.1.0",
+    "nock": "^14.0.15",
     "typescript": "^5"
   }
 }
