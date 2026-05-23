@@ -1,19 +1,25 @@
 :root {
-  /* Color Palette - Premium Light Theme */
-  --bg-color: #f8fafc;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --accent-color: #2563eb; /* Vibrant Blue for hope */
-  --accent-glow: rgba(37, 99, 235, 0.15);
-  --card-bg: rgba(255, 255, 255, 0.6);
-  --card-border: rgba(255, 255, 255, 1);
-  --card-hover-bg: rgba(255, 255, 255, 0.95);
+  /* Color Palette - Premium Dark Theme */
+  --bg-color: #0f172a; /* Dark grey/blue */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --accent-color: #3b82f6; /* Vibrant Blue for hope */
+  --accent-glow: rgba(59, 130, 246, 0.15);
+  --card-bg: rgba(30, 41, 59, 0.6);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --card-hover-bg: rgba(30, 41, 59, 0.95);
   
   /* Category Colors */
-  --cat-tech: #059669;
-  --cat-entertainment: #7c3aed;
-  --cat-politics: #d97706;
-  --cat-science: #0284c7;
+  --cat-tech: #10b981;
+  --cat-entertainment: #8b5cf6;
+  --cat-politics: #f59e0b;
+  --cat-science: #0ea5e9;
+  --cat-nature: #34d399;
+  --cat-health: #f43f5e;
+  --cat-education: #fbbf24;
+  --cat-social_issues: #ec4899;
+  --cat-innovation: #06b6d4;
+  --cat-general: #cbd5e1;
   
   /* Layout */
   --max-width: 1200px;
@@ -57,7 +63,7 @@ a {
 .title {
   font-size: 3rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 0.5rem;
@@ -104,9 +110,19 @@ a {
   top: 0;
   z-index: 100;
   padding: 1rem 0;
-  background: rgba(248, 250, 252, 0.75);
+  background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: none;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #ff595e, #ffca3a, #8ac926, #1982c4, #6a4c93);
 }
 
 .header-content {
@@ -142,7 +158,7 @@ a {
 
 .filter-btn {
   background: transparent;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   padding: 0.5rem 1rem;
   border-radius: 999px;
@@ -157,7 +173,7 @@ a {
 .filter-btn:hover {
   background: var(--card-hover-bg);
   color: var(--text-primary);
-  border-color: rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .filter-btn.active {
@@ -223,10 +239,16 @@ a {
   letter-spacing: 0.05em;
 }
 
-.tag-tech { background: rgba(5, 150, 105, 0.1); color: var(--cat-tech); border: 1px solid rgba(5, 150, 105, 0.2); }
-.tag-entertainment { background: rgba(124, 58, 237, 0.1); color: var(--cat-entertainment); border: 1px solid rgba(124, 58, 237, 0.2); }
-.tag-politics { background: rgba(217, 119, 6, 0.1); color: var(--cat-politics); border: 1px solid rgba(217, 119, 6, 0.2); }
-.tag-science { background: rgba(2, 132, 199, 0.1); color: var(--cat-science); border: 1px solid rgba(2, 132, 199, 0.2); }
+.tag-tech { background: rgba(16, 185, 129, 0.1); color: var(--cat-tech); border: 1px solid rgba(16, 185, 129, 0.2); }
+.tag-entertainment { background: rgba(139, 92, 246, 0.1); color: var(--cat-entertainment); border: 1px solid rgba(139, 92, 246, 0.2); }
+.tag-politics { background: rgba(245, 158, 11, 0.1); color: var(--cat-politics); border: 1px solid rgba(245, 158, 11, 0.2); }
+.tag-science { background: rgba(14, 165, 233, 0.1); color: var(--cat-science); border: 1px solid rgba(14, 165, 233, 0.2); }
+.tag-nature { background: rgba(52, 211, 153, 0.1); color: var(--cat-nature); border: 1px solid rgba(52, 211, 153, 0.2); }
+.tag-health { background: rgba(244, 63, 94, 0.1); color: var(--cat-health); border: 1px solid rgba(244, 63, 94, 0.2); }
+.tag-education { background: rgba(251, 191, 36, 0.1); color: var(--cat-education); border: 1px solid rgba(251, 191, 36, 0.2); }
+.tag-social_issues { background: rgba(236, 72, 153, 0.1); color: var(--cat-social_issues); border: 1px solid rgba(236, 72, 153, 0.2); }
+.tag-innovation { background: rgba(6, 182, 212, 0.1); color: var(--cat-innovation); border: 1px solid rgba(6, 182, 212, 0.2); }
+.tag-general { background: rgba(203, 213, 225, 0.1); color: var(--cat-general); border: 1px solid rgba(203, 213, 225, 0.2); }
 
 .story-date {
   color: var(--text-secondary);
@@ -257,7 +279,7 @@ a {
   justify-content: space-between;
   margin-top: auto;
   padding-top: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .source {

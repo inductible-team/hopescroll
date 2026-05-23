@@ -77,7 +77,7 @@ async function evaluatePositivity(title: string, excerpt: string): Promise<{ isP
         Instructions:
 
         * If the story does NOT belong on Hopescroll, reply with exactly: NO
-        * If the story DOES belong, reply with EXACTLY ONE category from the category list.
+        * If the story DOES belong, reply with EXACTLY ONE category that fits the story, from the category list.
         * When uncertain, prefer NO
         * Do not explain your reasoning.
         * Do not output punctuation.
