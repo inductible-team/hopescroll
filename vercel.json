@@ -1,16 +1,3 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/rss",
-      "schedule": "0 0 31 2 *"
-    },
-    {
-      "path": "/api/cron/curate-feeds",
-      "schedule": "0 0 31 2 *"
-    },
-    {
-      "path": "/api/cron/ai",
-      "schedule": "0 0 31 2 *"
-    }
-  ]
+  "crons": []
 }

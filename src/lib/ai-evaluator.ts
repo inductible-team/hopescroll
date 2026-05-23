@@ -4,6 +4,10 @@ import { categories } from './categories';
 
 const llmModel = 'gemini-3.1-flash-lite-preview'; //'gemini-3.5-flash';
 
+// 1) run /api/cron/curate-feeds once daily (purges 'useless' rss feeds)
+// 2) run /api/cron/rss once daily (pulls many articles from RSS feeds into DB) - takes a while, ignore 'time out'
+// 3) run /api/cron/ai for 8 hrs daily, once per minute (=480 invocations, < 500 daily limit) - populates audited stories in the DB
+
 /**
  * Uses Google Gemini to evaluate if a story is uplifting, 
  * empowering, and stimulates mental growth, without being patronising.
