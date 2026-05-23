@@ -17,9 +17,12 @@ export function StoryCard({ story, index }: { story: Story; index: number }) {
   const dateObj = new Date(story.date);
   const formattedDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(dateObj);
 
+  const trimmedUrl = story.url.trim();
+  const safeUrl = trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://') ? trimmedUrl : '#';
+
   return (
     <a 
-      href={story.url} 
+      href={safeUrl}
       target="_blank" 
       rel="noopener noreferrer" 
       className="story-card glass animate-fade-in"
