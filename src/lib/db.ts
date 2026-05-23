@@ -76,16 +76,24 @@ export interface DBStory {
   feedUrl?: string;
 }
 
-export async function getDailyStories(): Promise<DBStory[]> {
+export async function getDailyStories(page: number = 1, limit: number = 15, category: string = 'all'): Promise<DBStory[]> {
   if (!process.env.MONGODB_URI) {
     console.warn("MONGODB_URI missing. Returning empty feed.");
     return [];
   }
   const collection = await getCollection();
+  const skip = (page - 1) * limit;
+  
+  const query: any = { clearedEditorialCheck: true, verdict: 1 };
+  if (category && category !== 'all') {
+    query.category = category;
+  }
+
   const stories = await collection
-    .find({ clearedEditorialCheck: true, verdict: 1 })
+    .find(query)
     .sort({ date: -1 })
-    .limit(15)
+    .skip(skip)
+    .limit(limit)
     .toArray();
     
   // Transform the MongoDB _id object back to a plain object string representation if needed,
