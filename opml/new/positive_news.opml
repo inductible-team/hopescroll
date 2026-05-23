@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="1.0">
+    <head>
+        <title>Positive News Subscriptions</title>
+    </head>
+    <body>
+        <outline text="Positive News" title="Positive News" type="rss" xmlUrl="https://www.positive.news/feed/" htmlUrl="https://www.positive.news/"/>
+        <outline text="Good News Network" title="Good News Network" type="rss" xmlUrl="https://www.goodnewsnetwork.org/feed/" htmlUrl="https://www.goodnewsnetwork.org/"/>
+        <outline text="The Optimist Daily" title="The Optimist Daily" type="rss" xmlUrl="https://www.optimistdaily.com/feed/" htmlUrl="https://www.optimistdaily.com/"/>
+        <outline text="Reasons to be Cheerful" title="Reasons to be Cheerful" type="rss" xmlUrl="https://reasonstobecheerful.world/feed/" htmlUrl="https://reasonstobecheerful.world/"/>
+    </body>
+</opml>
