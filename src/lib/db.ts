@@ -100,7 +100,7 @@ export async function getDailyStories(): Promise<DBStory[]> {
     date: story.date,
     clearedEditorialCheck: story.clearedEditorialCheck,
     verdict: story.verdict,
-    is_seed: story.is_seed
+    is_seed: story.is_seed || false
   }));
 }
 

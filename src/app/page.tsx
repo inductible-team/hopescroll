@@ -1,6 +1,8 @@
 import { Feed } from '../components/Feed';
 import { getDailyStories, seedMockData } from '../lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   // Ensure DB is seeded with mock data if empty (for development purposes)
   await seedMockData();
