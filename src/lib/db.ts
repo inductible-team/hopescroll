@@ -146,12 +146,44 @@ export async function getUnevaluatedStory(): Promise<DBStory | null> {
   return result.length > 0 ? (result[0] as unknown as DBStory) : null;
 }
 
+export async function getUnevaluatedStories(limit: number = 10): Promise<DBStory[]> {
+  const collection = await getCollection();
+  
+  const result = await collection.aggregate([
+    { $match: { clearedEditorialCheck: false, verdict: -1 } },
+    { $sample: { size: limit } }
+  ]).toArray();
+  
+  return result as unknown as DBStory[];
+}
+
 export async function updateStoryVerdict(id: string, verdict: number, category: DBStory['category']) {
   const collection = await getCollection();
   await collection.updateOne(
     { id: id },
     { $set: { clearedEditorialCheck: true, verdict: verdict, category: category } }
   );
+}
+
+export async function bulkUpdateStoryVerdicts(evaluations: { id: string, verdict: number, category: string }[]) {
+  const collection = await getCollection();
+  
+  if (evaluations.length === 0) return;
+
+  const operations = evaluations.map(evaluation => ({
+    updateOne: {
+      filter: { id: evaluation.id },
+      update: { 
+        $set: { 
+          clearedEditorialCheck: true, 
+          verdict: evaluation.verdict, 
+          category: evaluation.category 
+        } 
+      }
+    }
+  }));
+
+  await collection.bulkWrite(operations);
 }
 
 export async function purgeOldAndNegativeStories() {
@@ -278,6 +310,23 @@ export async function recordFeedSuccess(url: string) {
       $set: { lastPositiveDate: new Date().toISOString() }
     }
   );
+}
+
+export async function bulkRecordFeedSuccess(urls: string[]) {
+  if (urls.length === 0) return;
+  const collection = await getFeedsCollection();
+  
+  const operations = urls.map(url => ({
+    updateOne: {
+      filter: { url },
+      update: { 
+        $inc: { positiveStoriesFound: 1 },
+        $set: { lastPositiveDate: new Date().toISOString() }
+      }
+    }
+  }));
+
+  await collection.bulkWrite(operations);
 }
 
 export async function incrementFeedFetches(url: string, count: number) {
