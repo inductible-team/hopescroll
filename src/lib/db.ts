@@ -165,7 +165,7 @@ export async function updateStoryVerdict(id: string, verdict: number, category: 
   );
 }
 
-export async function bulkUpdateStoryVerdicts(evaluations: { id: string, verdict: number, category: string }[]) {
+export async function bulkUpdateStoryVerdicts(evaluations: { id: string, verdict: number, category: DBStory['category'] }[]) {
   const collection = await getCollection();
   
   if (evaluations.length === 0) return;

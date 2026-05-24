@@ -122,7 +122,7 @@ export async function evaluateBatchOfStories(batchSize = 10) {
   const dbUpdates = results.map(result => ({
     id: String(result.id), // Ensure string id
     verdict: result.isPositive ? 1 : 0,
-    category: result.category as string
+    category: result.category as DBStory['category']
   }));
 
   // Update verdicts in bulk
