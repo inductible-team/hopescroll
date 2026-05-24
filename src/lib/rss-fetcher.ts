@@ -1,5 +1,5 @@
 import Parser from 'rss-parser';
-import { insertPotentialStories, clearSeedData, purgeOldAndNegativeStories, DBStory, getActiveFeeds, seedFeeds, incrementFeedFetches } from './db';
+import { insertPotentialStories, clearSeedData, purgeOldAndNegativeStories, DBStory, getActiveFeeds, seedFeeds, bulkIncrementFeedFetches } from './db';
 import crypto from 'crypto';
 import { categories } from './categories';
 
@@ -28,20 +28,23 @@ export async function fetchRssFeeds() {
   const activeFeeds = await getActiveFeeds();
   let newStoriesCount = 0;
 
+  const allPotentialStories: Omit<DBStory, 'clearedEditorialCheck' | 'verdict'>[] = [];
+  const feedFetchCounts: Record<string, number> = {};
+
   for (const feed of activeFeeds) {
     const feedUrl = feed.url;
     try {
       console.log(`Fetching RSS feed: ${feedUrl}`);
       const parsedFeed = await parser.parseURL(feedUrl);
       
-      const potentialStories: Omit<DBStory, 'clearedEditorialCheck' | 'verdict'>[] = [];
+      let feedStoriesCount = 0;
 
       for (const item of parsedFeed.items) {
         if (!item.title || !item.link) continue;
 
         const excerpt = item.contentSnippet || item.content || "No description available.";
         
-        potentialStories.push({
+        allPotentialStories.push({
           id: crypto.createHash('md5').update(item.link).digest('hex'),
           title: item.title,
           excerpt: excerpt.replace(/<[^>]*>?/gm, '').substring(0, 200).trim() + '...', 
@@ -51,17 +54,22 @@ export async function fetchRssFeeds() {
           date: item.isoDate || new Date().toISOString(),
           feedUrl: feedUrl
         });
+        feedStoriesCount++;
       }
 
-      await insertPotentialStories(potentialStories);
-      if (potentialStories.length > 0) {
-        await incrementFeedFetches(feedUrl, potentialStories.length);
+      if (feedStoriesCount > 0) {
+        feedFetchCounts[feedUrl] = (feedFetchCounts[feedUrl] || 0) + feedStoriesCount;
       }
-      newStoriesCount += potentialStories.length;
       
     } catch (error) {
       console.error(`Error fetching RSS feed ${feedUrl}:`, error);
     }
+  }
+
+  if (allPotentialStories.length > 0) {
+    await insertPotentialStories(allPotentialStories);
+    await bulkIncrementFeedFetches(feedFetchCounts);
+    newStoriesCount = allPotentialStories.length;
   }
 
   // Purge any articles older than 48hrs and any audited negative articles
