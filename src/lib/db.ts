@@ -288,6 +288,20 @@ export async function incrementFeedFetches(url: string, count: number) {
   );
 }
 
+export async function bulkIncrementFeedFetches(counts: Record<string, number>) {
+  const collection = await getFeedsCollection();
+  const operations = Object.entries(counts).map(([url, count]) => ({
+    updateOne: {
+      filter: { url },
+      update: { $inc: { totalStoriesFetched: count } }
+    }
+  }));
+
+  if (operations.length > 0) {
+    await collection.bulkWrite(operations);
+  }
+}
+
 export async function seedFeeds(feedUrls: string[]) {
   if (feedUrls.length === 0) return 0;
 
