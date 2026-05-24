@@ -7,9 +7,10 @@ import { fetchStoriesAction } from '../app/actions';
 
 interface FeedProps {
   initialStories: Story[];
+  initialStats: { totalStories: number, totalSources: number };
 }
 
-export function Feed({ initialStories }: FeedProps) {
+export function Feed({ initialStories, initialStats }: FeedProps) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [stories, setStories] = useState<Story[]>(initialStories);
   const [page, setPage] = useState(1);
@@ -80,11 +81,22 @@ export function Feed({ initialStories }: FeedProps) {
     };
   }, [loadMore]);
 
+  // Format date
+  const today = new Date();
+  const dateString = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
   return (
     <>
       <Header activeCategory={activeCategory} onSelectCategory={setActiveCategory} />
       
-      <main className="container">       
+      <main className="container">
+        <div className="daily-stats text-center mt-12 mb-10 px-4">
+          <h2 className="text-3xl font-bold mb-3 text-[var(--text-primary)]">{dateString}</h2>
+          <p className="text-[var(--text-secondary)] text-sm uppercase tracking-wider font-semibold">
+            {initialStats.totalStories} positive stories found from {initialStats.totalSources} sources
+          </p>
+        </div>
+
         <section className="feed-grid">
           {stories.length === 0 && !isLoading ? (
             <p className="text-center w-full mt-10">No stories found for this category today.</p>

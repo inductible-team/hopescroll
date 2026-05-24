@@ -1,4 +1,4 @@
-import { getUnevaluatedStories, bulkUpdateStoryVerdicts, bulkRecordFeedSuccess, DBStory } from './db';
+import { getUnevaluatedStories, bulkUpdateStoryVerdicts, bulkRecordFeedSuccess, refreshDailyStats, DBStory } from './db';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { categories } from './categories';
 
@@ -143,6 +143,9 @@ export async function evaluateBatchOfStories(batchSize = 10) {
   if (successfulUrls.length > 0) {
       await bulkRecordFeedSuccess(successfulUrls);
   }
+
+  // Update cached daily stats metadata
+  await refreshDailyStats();
 
   console.log(`Batch evaluation complete. Processed ${results.length} stories.`);
 }

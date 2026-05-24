@@ -1,5 +1,5 @@
 import Parser from 'rss-parser';
-import { insertPotentialStories, clearSeedData, purgeOldAndNegativeStories, DBStory, getActiveFeeds, seedFeeds, bulkIncrementFeedFetches } from './db';
+import { insertPotentialStories, clearSeedData, purgeOldAndNegativeStories, DBStory, getActiveFeeds, seedFeeds, bulkIncrementFeedFetches, refreshDailyStats } from './db';
 import crypto from 'crypto';
 import { categories } from './categories';
 
@@ -74,6 +74,9 @@ export async function fetchRssFeeds() {
 
   // Purge any articles older than 48hrs and any audited negative articles
   await purgeOldAndNegativeStories();
+
+  // Refresh daily stats to account for dropped stories
+  await refreshDailyStats();
 
   console.log(`Finished RSS Fetching. Inserted ${newStoriesCount} potential stories for AI auditing. Older stories purged.`);
 }

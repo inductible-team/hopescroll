@@ -1,5 +1,5 @@
 import { Feed } from '../components/Feed';
-import { getDailyStories, seedMockData } from '../lib/db';
+import { getDailyStories, seedMockData, getDailyStats } from '../lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +9,7 @@ export default async function Home() {
 
   // Fetch from MongoDB database
   const stories = await getDailyStories();
+  const stats = await getDailyStats();
 
-  return <Feed initialStories={stories} />;
+  return <Feed initialStories={stories} initialStats={stats} />;
 }

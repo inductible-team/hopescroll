@@ -53,6 +53,15 @@ async function getFeedsCollection() {
   return db.collection<DBFeed>('rss_feeds');
 }
 
+async function getMetadataCollection() {
+  if (!clientPromise) {
+    throw new Error('MONGODB_URI is missing in .env.local');
+  }
+  const dbClient = await clientPromise;
+  const db = dbClient.db('hopescroll');
+  return db.collection<any>('metadata');
+}
+
 export interface DBFeed {
   url: string;
   status: 'active' | 'disabled';
@@ -110,6 +119,45 @@ export async function getDailyStories(page: number = 1, limit: number = 15, cate
     verdict: story.verdict,
     is_seed: story.is_seed || false
   }));
+}
+
+export async function refreshDailyStats() {
+  const collection = await getCollection();
+  
+  const stories = await collection.find({
+    clearedEditorialCheck: true,
+    verdict: 1
+  }).project({ source: 1 }).toArray();
+  
+  const sources = new Set(stories.map(s => s.source));
+  
+  const metadataCollection = await getMetadataCollection();
+  await metadataCollection.updateOne(
+    { _id: 'daily_stats' },
+    { 
+      $set: { 
+        totalStories: stories.length,
+        totalSources: sources.size,
+        lastUpdated: new Date().toISOString()
+      } 
+    },
+    { upsert: true }
+  );
+}
+
+export async function getDailyStats() {
+  const metadataCollection = await getMetadataCollection();
+  let stats = await metadataCollection.findOne({ _id: 'daily_stats' });
+  
+  if (!stats) {
+    await refreshDailyStats();
+    stats = await metadataCollection.findOne({ _id: 'daily_stats' });
+  }
+  
+  return {
+    totalStories: stats?.totalStories || 0,
+    totalSources: stats?.totalSources || 0
+  };
 }
 
 export async function insertPotentialStories(stories: Omit<DBStory, 'clearedEditorialCheck' | 'verdict'>[]) {
