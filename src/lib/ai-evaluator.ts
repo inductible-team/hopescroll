@@ -2,7 +2,7 @@ import { getUnevaluatedStories, bulkUpdateStoryVerdicts, bulkRecordFeedSuccess, 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { categories } from './categories';
 
-const llmModel = 'gemini-3.1-flash-lite-preview';
+const llmModel = 'gemini-3.1-flash-lite';
 
 interface BatchEvaluationResult {
   id: string;
