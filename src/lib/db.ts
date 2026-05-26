@@ -156,7 +156,8 @@ export async function getDailyStats() {
   
   return {
     totalStories: stats?.totalStories || 0,
-    totalSources: stats?.totalSources || 0
+    totalSources: stats?.totalSources || 0,
+    lastUpdated: stats?.lastUpdated || null
   };
 }
 

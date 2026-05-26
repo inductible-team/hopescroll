@@ -7,7 +7,7 @@ import { fetchStoriesAction } from '../app/actions';
 
 interface FeedProps {
   initialStories: Story[];
-  initialStats: { totalStories: number, totalSources: number };
+  initialStats: { totalStories: number, totalSources: number, lastUpdated?: string | null };
 }
 
 export function Feed({ initialStories, initialStats }: FeedProps) {
@@ -92,9 +92,14 @@ export function Feed({ initialStories, initialStats }: FeedProps) {
       <main className="container">
         <div className="daily-stats text-center mt-12 mb-10 px-4">
           <h2 className="text-3xl font-bold mb-3 text-[var(--text-primary)]">{dateString}</h2>
-          <p className="text-[var(--text-secondary)] text-sm uppercase tracking-wider font-semibold">
-            {initialStats.totalStories} positive stories found from {initialStats.totalSources} sources
+          <p className="text-[var(--text-secondary)] text-sm uppercase tracking-wider font-semibold mb-1">
+            {initialStats.totalStories} stories found from {initialStats.totalSources} sources
           </p>
+          {initialStats.lastUpdated && (
+            <p className="text-[var(--text-secondary)] text-xs opacity-75">
+              Updated at {new Date(initialStats.lastUpdated).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+            </p>
+          )}
         </div>
 
         <section className="feed-grid">
